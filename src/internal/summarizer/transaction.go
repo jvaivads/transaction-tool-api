@@ -2,7 +2,10 @@ package summarizer
 
 import "time"
 
-type transactions []transaction
+type transactions struct {
+	items  []transaction
+	userID int64
+}
 
 type transaction struct {
 	amount float64
