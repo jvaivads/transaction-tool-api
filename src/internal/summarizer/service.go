@@ -6,6 +6,10 @@ import (
 	"transaction-tool-api/src/internal/notifier"
 )
 
+type Service interface {
+	notifyResume(ctx context.Context, txns transactions) (err error)
+}
+
 type service struct {
 	repository repository
 	notifier   notifier.Client

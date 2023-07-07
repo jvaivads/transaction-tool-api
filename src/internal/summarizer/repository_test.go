@@ -98,6 +98,9 @@ func TestSQLRepositorySaveBankTransactions(t *testing.T) {
 			mock.ExpectBegin()
 			if test.mockApplier != nil {
 				test.mockApplier(mock)
+				defer func() {
+					require.Nil(t, mock.ExpectationsWereMet())
+				}()
 			}
 			tnx, err := db.Begin()
 			if err != nil {
