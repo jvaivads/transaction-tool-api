@@ -6,12 +6,19 @@ import (
 	"transaction-tool-api/src/internal/notifier"
 )
 
+func NewService(repository Repository, notifierClient notifier.Client) Service {
+	return service{
+		repository: repository,
+		notifier:   notifierClient,
+	}
+}
+
 type Service interface {
 	notifyResume(ctx context.Context, txns transactions) (err error)
 }
 
 type service struct {
-	repository repository
+	repository Repository
 	notifier   notifier.Client
 }
 

@@ -223,6 +223,16 @@ func TestControllerParseFileToTransactions(t *testing.T) {
 				"bad format", 1),
 		},
 		{
+			name: "transactions belong to different year",
+			transactions: [][]string{
+				{"-10.5", date.Format(time.RFC3339)},
+				{"15", date.Add(8760 * time.Hour).Format(time.RFC3339)},
+			},
+			expectedErr: fmt.Errorf(
+				"transaction set must belong to same year, 1-number-transaction year"+
+					" is %d and %d-number-transaction year is %d", 2021, 2, 2022),
+		},
+		{
 			name: "successfully parsing",
 			transactions: [][]string{
 				{"-10.5", date.Format(time.RFC3339)},

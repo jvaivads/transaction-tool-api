@@ -8,7 +8,11 @@ import (
 	"strings"
 )
 
-type repository interface {
+func NewRepository(client *sql.DB) Repository {
+	return repository{client: client}
+}
+
+type Repository interface {
 	initTransactionalOperations(context.Context) (tx, error)
 	finishTransactionalOperations(context.Context, tx, error) error
 	saveBankTransactions(context.Context, tx, transactions) error
@@ -25,11 +29,11 @@ func (t tx) Exec(ctx context.Context, query string, params []any) (sql.Result, e
 	return t.client.ExecContext(ctx, query, params...)
 }
 
-type sqlRepository struct {
+type repository struct {
 	client *sql.DB
 }
 
-func (r sqlRepository) initTransactionalOperations(ctx context.Context) (tx, error) {
+func (r repository) initTransactionalOperations(ctx context.Context) (tx, error) {
 	tnx, err := r.client.BeginTx(ctx, nil)
 	if err != nil {
 		return tx{}, err
@@ -37,7 +41,7 @@ func (r sqlRepository) initTransactionalOperations(ctx context.Context) (tx, err
 	return tx{client: tnx}, nil
 }
 
-func (r sqlRepository) finishTransactionalOperations(_ context.Context, tnx tx, err error) error {
+func (r repository) finishTransactionalOperations(_ context.Context, tnx tx, err error) error {
 	if err != nil {
 		_ = tnx.client.Rollback()
 		return err
@@ -45,7 +49,7 @@ func (r sqlRepository) finishTransactionalOperations(_ context.Context, tnx tx, 
 	return tnx.client.Commit()
 }
 
-func (r sqlRepository) saveBankTransactions(ctx context.Context, tnx tx, bankTxns transactions) error {
+func (r repository) saveBankTransactions(ctx context.Context, tnx tx, bankTxns transactions) error {
 	if bankTxns.items == nil {
 		return nil
 	}

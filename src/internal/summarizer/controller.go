@@ -10,6 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func NewController(service Service) Controller {
+	return controller{service: service}
+}
+
+type Controller interface {
+	ResumeTransactions(c *gin.Context)
+}
+
 type controller struct {
 	service Service
 }
@@ -77,6 +85,7 @@ func (ctl controller) parseFileToTransactions(file [][]string, userID int64) (tr
 	var (
 		totalElementsByRow = 2
 		bankTransactions   = transactions{userID: userID, items: make([]transaction, 0, len(file))}
+		year               int
 	)
 
 	for i, row := range file {
@@ -101,6 +110,14 @@ func (ctl controller) parseFileToTransactions(file [][]string, userID int64) (tr
 			return transactions{}, fmt.Errorf(
 				"error parsing date '%s' because of no compliance with RFC3339 layout for row number %d",
 				row[1], i+1)
+		}
+
+		if year == 0 {
+			year = date.Year()
+		} else if year != date.Year() {
+			return transactions{}, fmt.Errorf(
+				"transaction set must belong to same year, 1-number-transaction year"+
+					" is %d and %d-number-transaction year is %d", year, i+1, date.Year())
 		}
 
 		bankTransactions.items = append(bankTransactions.items, transaction{

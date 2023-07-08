@@ -106,7 +106,7 @@ func TestSQLRepositorySaveBankTransactions(t *testing.T) {
 			if err != nil {
 				require.Nil(t, err)
 			}
-			repo := sqlRepository{client: db}
+			repo := repository{client: db}
 			assert.Equal(t, test.expected, repo.saveBankTransactions(context.TODO(), tx{tnx}, test.bankTxns))
 
 		})
