@@ -205,3 +205,38 @@ func TestSummarizerGetTotalTransactionsByMonth(t *testing.T) {
 		})
 	}
 }
+
+func TestSummarizerResume(t *testing.T) {
+	tests := []struct {
+		name         string
+		transactions transactions
+		expected     Resume
+	}{
+		{
+			name: "resume",
+			transactions: transactions{
+				items: []transaction{
+					{amount: -10, date: time.Date(2021, time.December, 1, 0, 0, 0, 0, time.UTC)},
+					{amount: 15, date: time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)},
+					{amount: -60, date: time.Date(2021, time.April, 1, 0, 0, 0, 0, time.UTC)},
+				},
+			},
+			expected: Resume{
+				Balance:   -55,
+				CreditAvg: 15,
+				DebitAvg:  -35,
+				TotalTransactionsByMonth: map[time.Month]int{
+					time.December: 1,
+					time.January:  1,
+					time.April:    1,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, summarizer{}.resume(test.transactions))
+		})
+	}
+}

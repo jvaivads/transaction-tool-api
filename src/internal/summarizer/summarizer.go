@@ -1,6 +1,9 @@
 package summarizer
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type summarizer struct {
 }
@@ -59,13 +62,23 @@ func (s summarizer) getTotalTransactionsByMonth(txns transactions) map[time.Mont
 	return totalTransactionsByMonth
 }
 
-func (s summarizer) resume(txns transactions) resume {
-	return resume{}
+func (s summarizer) resume(txns transactions) Resume {
+	return Resume{
+		Balance:                  s.getBalance(txns),
+		CreditAvg:                s.getCreditAvg(txns),
+		DebitAvg:                 s.getDebitAvg(txns),
+		TotalTransactionsByMonth: s.getTotalTransactionsByMonth(txns),
+	}
 }
 
-type resume struct {
+type Resume struct {
+	Balance                  float64            `json:"balance"`
+	CreditAvg                float64            `json:"credit_average"`
+	DebitAvg                 float64            `json:"debit_average"`
+	TotalTransactionsByMonth map[time.Month]int `json:"total_transactions_by_month"`
 }
 
-func (r resume) String() string {
-	return ""
+func (r Resume) String() string {
+	b, _ := json.Marshal(r)
+	return string(b)
 }

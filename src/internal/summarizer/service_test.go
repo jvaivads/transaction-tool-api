@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 	"transaction-tool-api/src/internal/notifier"
 
 	"github.com/stretchr/testify/assert"
@@ -12,12 +13,19 @@ import (
 
 func TestServiceResumeTransactions(t *testing.T) {
 	var (
+		date      = time.Date(2021, time.December, 1, 0, 0, 0, 0, time.UTC)
 		customErr = errors.New("custom error")
 		bankTnxs  = transactions{
 			items: []transaction{
-				{amount: 10},
+				{amount: 10, date: date},
 			},
 			userID: 1,
+		}
+		resume = Resume{
+			Balance:                  10,
+			CreditAvg:                10,
+			DebitAvg:                 0,
+			TotalTransactionsByMonth: map[time.Month]int{time.December: 1},
 		}
 	)
 
@@ -63,7 +71,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", "", bankTnxs.userID).Return(customErr).Once()
+				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(customErr).Once()
 				rm.On(
 					"finishTransactionalOperations", tx{},
 					fmt.Errorf("error notifying transactions to user id %d due to: %w", bankTnxs.userID, customErr)).
@@ -77,7 +85,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", "", bankTnxs.userID).Return(nil).Once()
+				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(customErr).Once()
 			},
 			expected: customErr,
@@ -88,7 +96,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", "", bankTnxs.userID).Return(nil).Once()
+				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(nil).Once()
 			},
 			expected: nil,
