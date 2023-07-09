@@ -29,7 +29,7 @@ func main() {
 
 	router.POST("/transaction-tool/resume/:user_id", controller.ResumeTransactions)
 
-	if err := router.Run("localhost:8080"); err != nil {
+	if err := router.Run(":8080"); err != nil {
 		panic(err)
 	}
 }
