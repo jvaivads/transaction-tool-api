@@ -222,13 +222,14 @@ func TestSummarizerResume(t *testing.T) {
 				},
 			},
 			expected: Resume{
-				Balance:   -55,
-				CreditAvg: 15,
-				DebitAvg:  -35,
-				TotalTransactionsByMonth: map[time.Month]int{
-					time.December: 1,
-					time.January:  1,
-					time.April:    1,
+				Balance:   "-55.00",
+				CreditAvg: "15.00",
+				DebitAvg:  "-35.00",
+
+				MonthTransactions: []MonthTransaction{
+					{time.January.String(), 1},
+					{time.April.String(), 1},
+					{time.December.String(), 1},
 				},
 			},
 		},
@@ -237,6 +238,56 @@ func TestSummarizerResume(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.Equal(t, test.expected, summarizer{}.resume(test.transactions))
+		})
+	}
+}
+
+func TestResumeToHTML(t *testing.T) {
+	resume := Resume{
+		Balance:   "1.12",
+		CreditAvg: "1.4",
+		DebitAvg:  "1.55",
+		MonthTransactions: []MonthTransaction{
+			{
+				Month:             time.January.String(),
+				TotalTransactions: 5,
+			},
+			{
+				Month:             time.December.String(),
+				TotalTransactions: 5,
+			},
+		},
+	}
+
+	tests := []struct {
+		name        string
+		tmpl        string
+		resume      Resume
+		result      string
+		expectedErr bool
+	}{
+		{
+			name:        "error parsing",
+			resume:      resume,
+			tmpl:        "<h1>Balance: {{.Bad}}</h1>",
+			expectedErr: true,
+		},
+		{
+			name:   "error parsing",
+			resume: resume,
+			tmpl:   resumeHTMLTemplate,
+			result: "<body>    <img src=\"https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg\"> " +
+				"   <h1>Balance: 1.12</h1>    <h1>Credit Average: 1.4</h1>    <h1>Debit Average: 1.55</h1>   " +
+				" <h1>Transactions by month</h1>    <p>         <p>January: 5<p> <p>December: 5<p>    </p></body>",
+			expectedErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.resume.ToHTML(test.tmpl)
+			assert.Equal(t, test.result, result)
+			assert.Equal(t, test.expectedErr, err != nil)
 		})
 	}
 }

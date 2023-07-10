@@ -1,8 +1,26 @@
 package summarizer
 
 import (
-	"encoding/json"
+	"bytes"
+	"fmt"
+	"html/template"
+	"sort"
+	"strings"
 	"time"
+)
+
+const (
+	resumeHTMLTemplate = `
+<body>
+    <img src="https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg">
+    <h1>Balance: {{.Balance}}</h1>
+    <h1>Credit Average: {{.CreditAvg}}</h1>
+    <h1>Debit Average: {{.DebitAvg}}</h1>
+    <h1>Transactions by month</h1>
+    <p>
+        {{range .MonthTransactions}} <p>{{.Month}}: {{.TotalTransactions}}<p>{{end}}
+    </p>
+</body>`
 )
 
 type summarizer struct {
@@ -63,22 +81,60 @@ func (s summarizer) getTotalTransactionsByMonth(txns transactions) map[time.Mont
 }
 
 func (s summarizer) resume(txns transactions) Resume {
+	var (
+		months              []time.Month
+		monthTransactions   []MonthTransaction
+		transactionsByMonth = s.getTotalTransactionsByMonth(txns)
+	)
+
+	for month, _ := range transactionsByMonth {
+		months = append(months, month)
+	}
+
+	sort.Slice(months, func(i, j int) bool {
+		return months[i] < months[j]
+	})
+
+	for _, month := range months {
+		monthTransactions = append(monthTransactions, MonthTransaction{
+			Month:             month.String(),
+			TotalTransactions: transactionsByMonth[month],
+		})
+	}
+
 	return Resume{
-		Balance:                  s.getBalance(txns),
-		CreditAvg:                s.getCreditAvg(txns),
-		DebitAvg:                 s.getDebitAvg(txns),
-		TotalTransactionsByMonth: s.getTotalTransactionsByMonth(txns),
+		Balance:           fmt.Sprintf("%.2f", s.getBalance(txns)),
+		CreditAvg:         fmt.Sprintf("%.2f", s.getCreditAvg(txns)),
+		DebitAvg:          fmt.Sprintf("%.2f", s.getDebitAvg(txns)),
+		MonthTransactions: monthTransactions,
 	}
 }
 
-type Resume struct {
-	Balance                  float64            `json:"balance"`
-	CreditAvg                float64            `json:"credit_average"`
-	DebitAvg                 float64            `json:"debit_average"`
-	TotalTransactionsByMonth map[time.Month]int `json:"total_transactions_by_month"`
+type MonthTransaction struct {
+	Month             string
+	TotalTransactions int
 }
 
-func (r Resume) String() string {
-	b, _ := json.Marshal(r)
-	return string(b)
+type Resume struct {
+	Balance           string
+	CreditAvg         string
+	DebitAvg          string
+	MonthTransactions []MonthTransaction
+}
+
+func (r Resume) ToHTML(tmpl string) (string, error) {
+	tmpl = strings.ReplaceAll(tmpl, "\n", "")
+
+	t, err := template.New("resume").Parse(tmpl)
+	if err != nil {
+		return "", fmt.Errorf("error creating resume template due to %w", err)
+	}
+
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, r)
+	if err != nil {
+		return "", fmt.Errorf("error parsing resume due to %w", err)
+	}
+
+	return buffer.String(), nil
 }

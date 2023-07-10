@@ -45,7 +45,13 @@ func (s service) notifyResume(ctx context.Context, txns transactions) (err error
 		return
 	}
 
-	if err = s.notifier.NotifyToUser(ctx, summ.resume(txns).String(), txns.userID); err != nil {
+	message, err := summ.resume(txns).ToHTML(resumeHTMLTemplate)
+	if err != nil {
+		err = fmt.Errorf("error generating message for user id %d due to: %w", txns.userID, err)
+		return
+	}
+
+	if err = s.notifier.NotifyToUser(ctx, message, txns.userID); err != nil {
 		err = fmt.Errorf("error notifying transactions to user id %d due to: %w", txns.userID, err)
 		return
 	}

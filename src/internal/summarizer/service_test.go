@@ -21,12 +21,12 @@ func TestServiceResumeTransactions(t *testing.T) {
 			},
 			userID: 1,
 		}
-		resume = Resume{
-			Balance:                  10,
-			CreditAvg:                10,
-			DebitAvg:                 0,
-			TotalTransactionsByMonth: map[time.Month]int{time.December: 1},
-		}
+		msg, _ = Resume{
+			Balance:           "10.00",
+			CreditAvg:         "10.00",
+			DebitAvg:          "0.00",
+			MonthTransactions: []MonthTransaction{{time.December.String(), 1}},
+		}.ToHTML(resumeHTMLTemplate)
 	)
 
 	tests := []struct {
@@ -71,7 +71,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(customErr).Once()
+				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(customErr).Once()
 				rm.On(
 					"finishTransactionalOperations", tx{},
 					fmt.Errorf("error notifying transactions to user id %d due to: %w", bankTnxs.userID, customErr)).
@@ -85,7 +85,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(nil).Once()
+				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(customErr).Once()
 			},
 			expected: customErr,
@@ -96,7 +96,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", resume.String(), bankTnxs.userID).Return(nil).Once()
+				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(nil).Once()
 			},
 			expected: nil,
