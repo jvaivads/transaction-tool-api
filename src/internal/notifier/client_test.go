@@ -23,7 +23,7 @@ func TestClientNotifyToUser(t *testing.T) {
 			mockApplier: func(m *dialerMock) {
 				m.On("DialAndSend", mock.Anything).Return(customErr).Once()
 			},
-			expected: fmt.Errorf("unexpected error sending mail to usier id %d due to: %w", 1, customErr),
+			expected: fmt.Errorf("unexpected error sending mail to user due to: %w", customErr),
 		},
 		{
 			name: "no error",
@@ -43,7 +43,7 @@ func TestClientNotifyToUser(t *testing.T) {
 				sender: "sender",
 				dialer: dMock,
 			}
-			assert.Equal(t, test.expected, c.NotifyToUser(context.TODO(), "message", 1))
+			assert.Equal(t, test.expected, c.NotifyToUser(context.TODO(), "message", "email"))
 		})
 	}
 }

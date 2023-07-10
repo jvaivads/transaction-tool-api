@@ -16,17 +16,25 @@ type Repository interface {
 	initTransactionalOperations(context.Context) (tx, error)
 	finishTransactionalOperations(context.Context, tx, error) error
 	saveBankTransactions(context.Context, tx, transactions) error
+	getUserByID(context.Context, tx, int64) (User, error)
 }
 
 type tx struct {
 	client *sql.Tx
 }
 
-func (t tx) Exec(ctx context.Context, query string, params []any) (sql.Result, error) {
+func (t tx) Exec(ctx context.Context, query string, params ...any) (sql.Result, error) {
 	if t.client == nil {
 		return nil, errors.New("transaction client is nil")
 	}
 	return t.client.ExecContext(ctx, query, params...)
+}
+
+func (t tx) QueryRow(ctx context.Context, query string, params ...any) (*sql.Row, error) {
+	if t.client == nil {
+		return nil, errors.New("transaction client is nil")
+	}
+	return t.client.QueryRowContext(ctx, query, params...), nil
 }
 
 type repository struct {
@@ -67,7 +75,7 @@ func (r repository) saveBankTransactions(ctx context.Context, tnx tx, bankTxns t
 
 	query = fmt.Sprintf(query, strings.Join(transactionFormats, ","))
 
-	result, err := tnx.Exec(ctx, query, params)
+	result, err := tnx.Exec(ctx, query, params...)
 	if err != nil {
 		return fmt.Errorf("error inserting transactions due to: %w", err)
 	}
@@ -83,4 +91,28 @@ func (r repository) saveBankTransactions(ctx context.Context, tnx tx, bankTxns t
 	}
 
 	return nil
+}
+
+type User struct {
+	userID int64
+	name   string
+	email  string
+}
+
+func (r repository) getUserByID(ctx context.Context, tnx tx, userID int64) (User, error) {
+	var (
+		user  User
+		query = `SELECT id, name, email FROM user WHERE id = ?`
+	)
+
+	row, err := tnx.QueryRow(ctx, query, userID)
+	if err != nil {
+		return User{}, err
+	}
+
+	if err = row.Scan(&user.userID, &user.name, &user.email); err != nil {
+		return User{}, fmt.Errorf("error scanning user by id %d due to: %w", userID, err)
+	}
+
+	return user, nil
 }

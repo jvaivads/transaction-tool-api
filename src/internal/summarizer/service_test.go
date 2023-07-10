@@ -53,10 +53,24 @@ func TestServiceResumeTransactions(t *testing.T) {
 			expected: fmt.Errorf("error creating repository transaction due to: %w", customErr),
 		},
 		{
+			name:         "error getting user",
+			transactions: bankTnxs,
+			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
+				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(nil, customErr).Once()
+				rm.On(
+					"finishTransactionalOperations",
+					tx{}, fmt.Errorf("error getting user due to: %w", customErr)).
+					Return(customErr).Once()
+			},
+			expected: customErr,
+		},
+		{
 			name:         "save bank transactions fails",
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(customErr).Once()
 				rm.On(
 					"finishTransactionalOperations",
@@ -70,8 +84,9 @@ func TestServiceResumeTransactions(t *testing.T) {
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(customErr).Once()
+				nm.On("NotifyToUser", msg, "email").Return(customErr).Once()
 				rm.On(
 					"finishTransactionalOperations", tx{},
 					fmt.Errorf("error notifying transactions to user id %d due to: %w", bankTnxs.userID, customErr)).
@@ -85,7 +100,8 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
+				nm.On("NotifyToUser", msg, "email").Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(customErr).Once()
 			},
 			expected: customErr,
@@ -95,8 +111,9 @@ func TestServiceResumeTransactions(t *testing.T) {
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				nm.On("NotifyToUser", msg, bankTnxs.userID).Return(nil).Once()
+				nm.On("NotifyToUser", msg, "email").Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(nil).Once()
 			},
 			expected: nil,

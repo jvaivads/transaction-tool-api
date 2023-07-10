@@ -11,8 +11,8 @@ type Mock struct {
 	mock.Mock
 }
 
-func (m *Mock) NotifyToUser(_ context.Context, msg string, userID int64) error {
-	args := m.Called(msg, userID)
+func (m *Mock) NotifyToUser(_ context.Context, message string, email string) error {
+	args := m.Called(message, email)
 	return args.Error(0)
 }
 

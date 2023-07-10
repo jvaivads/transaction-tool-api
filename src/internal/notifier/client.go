@@ -8,7 +8,7 @@ import (
 )
 
 type Client interface {
-	NotifyToUser(ctx context.Context, message string, userID int64) error
+	NotifyToUser(ctx context.Context, message string, email string) error
 }
 
 type dialer interface {
@@ -39,15 +39,15 @@ func NewClient(options Options) Client {
 	}
 }
 
-func (c client) NotifyToUser(_ context.Context, message string, userID int64) error {
+func (c client) NotifyToUser(_ context.Context, message string, email string) error {
 	m := mail.NewMessage()
 	m.SetHeader("From", c.sender)
-	m.SetHeader("To", "to@example.com")
-	m.SetHeader("Subject", "transaction resume")
-	m.SetBody("text/plain", message)
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Transaction resume")
+	m.SetBody("text/html", message)
 
 	if err := c.dialer.DialAndSend(m); err != nil {
-		return fmt.Errorf("unexpected error sending mail to usier id %d due to: %w", userID, err)
+		return fmt.Errorf("unexpected error sending mail to user due to: %w", err)
 	}
 	return nil
 }

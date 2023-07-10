@@ -112,3 +112,60 @@ func TestSQLRepositorySaveBankTransactions(t *testing.T) {
 		})
 	}
 }
+
+func TestSQLRepositoryGetUserByID(t *testing.T) {
+	var (
+		query = regexp.QuoteMeta(`SELECT id, name, email FROM user WHERE id = ?`)
+	)
+	tests := []struct {
+		name        string
+		mockApplier func(sqlmock.Sqlmock)
+		result      User
+		expectedErr error
+	}{
+		{
+			name: "error scanning",
+			mockApplier: func(m sqlmock.Sqlmock) {
+				m.ExpectQuery(query).WithArgs(int64(1)).WillReturnError(sql.ErrNoRows)
+			},
+			result:      User{},
+			expectedErr: fmt.Errorf("error scanning user by id %d due to: %w", 1, sql.ErrNoRows),
+		},
+		{
+			name: "error scanning",
+			mockApplier: func(m sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"id", "name", "mail"})
+				rows.AddRow(1, "name", "email")
+				m.ExpectQuery(query).WithArgs(int64(1)).WillReturnRows(rows)
+			},
+			result: User{
+				userID: 1,
+				name:   "name",
+				email:  "email",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			db, mock := newDBMock()
+			mock.ExpectBegin()
+			if test.mockApplier != nil {
+				test.mockApplier(mock)
+				defer func() {
+					require.Nil(t, mock.ExpectationsWereMet())
+				}()
+			}
+			tnx, err := db.Begin()
+			if err != nil {
+				require.Nil(t, err)
+			}
+			repo := repository{client: db}
+
+			user, err := repo.getUserByID(context.TODO(), tx{tnx}, 1)
+
+			assert.Equal(t, test.expectedErr, err)
+			assert.Equal(t, test.result, user)
+
+		})
+	}
+}

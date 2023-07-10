@@ -28,8 +28,10 @@ func (s service) notifyResume(ctx context.Context, txns transactions) (err error
 	}
 
 	var (
-		summ   summarizer
-		repoTx tx
+		summ    summarizer
+		user    User
+		repoTx  tx
+		message string
 	)
 
 	if repoTx, err = s.repository.initTransactionalOperations(ctx); err != nil {
@@ -40,18 +42,22 @@ func (s service) notifyResume(ctx context.Context, txns transactions) (err error
 		err = s.repository.finishTransactionalOperations(ctx, repoTx, err)
 	}()
 
+	if user, err = s.repository.getUserByID(ctx, repoTx, txns.userID); err != nil {
+		err = fmt.Errorf("error getting user due to: %w", err)
+		return
+	}
+
 	if err = s.repository.saveBankTransactions(ctx, repoTx, txns); err != nil {
 		err = fmt.Errorf("error saving transactions due to: %w", err)
 		return
 	}
 
-	message, err := summ.resume(txns).ToHTML(resumeHTMLTemplate)
-	if err != nil {
+	if message, err = summ.resume(txns).ToHTML(resumeHTMLTemplate); err != nil {
 		err = fmt.Errorf("error generating message for user id %d due to: %w", txns.userID, err)
 		return
 	}
 
-	if err = s.notifier.NotifyToUser(ctx, message, txns.userID); err != nil {
+	if err = s.notifier.NotifyToUser(ctx, message, user.email); err != nil {
 		err = fmt.Errorf("error notifying transactions to user id %d due to: %w", txns.userID, err)
 		return
 	}

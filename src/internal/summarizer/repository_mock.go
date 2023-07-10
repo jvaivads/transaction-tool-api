@@ -31,3 +31,16 @@ func (m *repositoryMock) saveBankTransactions(_ context.Context, txn tx, bankTxn
 	args := m.Called(txn, bankTxns)
 	return args.Error(0)
 }
+
+func (m *repositoryMock) getUserByID(_ context.Context, txn tx, userID int64) (User, error) {
+	var (
+		user User
+		args = m.Called(txn, userID)
+	)
+
+	if value, ok := args.Get(0).(User); ok {
+		user = value
+	}
+
+	return user, args.Error(1)
+}
