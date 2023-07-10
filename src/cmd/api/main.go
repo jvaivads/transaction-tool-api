@@ -18,12 +18,7 @@ func main() {
 					database.GetLocalMySQLClientConfig(),
 				),
 			),
-			notifier.NewClient(notifier.Options{
-				Host:     "smtp.example.com",
-				Port:     587,
-				Username: "user",
-				Password: "password",
-			}),
+			notifier.NewClient(notifier.GetOptions()),
 		),
 	)
 

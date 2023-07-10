@@ -23,7 +23,10 @@ services:
       dockerfile: Dockerfile
     container_name: "transaction-tool-api"
     environment:
-      LOCAL_ENV: "docker"
+      NOTIFIER_HOST: "smtp.gmail.com"
+      NOTIFIER_PORT: "587"
+      NOTIFIER_SENDER: "xxxxx@gmail.com"
+      NOTIFIER_PASSWORD: "xxxxxx"
     ports:
       - "8080:8080"
     networks:

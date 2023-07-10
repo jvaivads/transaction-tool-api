@@ -3,6 +3,8 @@ package notifier
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 
 	"gopkg.in/mail.v2"
 )
@@ -25,6 +27,36 @@ type Options struct {
 	Port     int
 	Username string
 	Password string
+}
+
+func GetOptions() Options {
+	host := os.Getenv("NOTIFIER_HOST")
+	if host == "" {
+		panic("notifier host is empty")
+	}
+	portStr := os.Getenv("NOTIFIER_PORT")
+	if portStr == "" {
+		panic("notifier port is empty")
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		panic("notifier port is not a number")
+	}
+	sender := os.Getenv("NOTIFIER_SENDER")
+	if sender == "" {
+		panic("notifier sender is empty")
+	}
+	password := os.Getenv("NOTIFIER_PASSWORD")
+	if password == "" {
+		panic("notifier password is empty")
+	}
+
+	return Options{
+		Host:     host,
+		Port:     port,
+		Username: sender,
+		Password: password,
+	}
 }
 
 func NewClient(options Options) Client {

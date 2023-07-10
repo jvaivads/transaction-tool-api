@@ -102,7 +102,7 @@ type User struct {
 func (r repository) getUserByID(ctx context.Context, tnx tx, userID int64) (User, error) {
 	var (
 		user  User
-		query = `SELECT id, name, email FROM user WHERE id = ?`
+		query = `SELECT id, user_name, email FROM user WHERE id = ?`
 	)
 
 	row, err := tnx.QueryRow(ctx, query, userID)

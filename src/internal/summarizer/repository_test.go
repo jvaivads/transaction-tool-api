@@ -115,7 +115,7 @@ func TestSQLRepositorySaveBankTransactions(t *testing.T) {
 
 func TestSQLRepositoryGetUserByID(t *testing.T) {
 	var (
-		query = regexp.QuoteMeta(`SELECT id, name, email FROM user WHERE id = ?`)
+		query = regexp.QuoteMeta(`SELECT id, user_name, email FROM user WHERE id = ?`)
 	)
 	tests := []struct {
 		name        string
