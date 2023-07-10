@@ -207,6 +207,12 @@ func TestSummarizerGetTotalTransactionsByMonth(t *testing.T) {
 }
 
 func TestSummarizerResume(t *testing.T) {
+	user := User{
+		UserID: 1,
+		Name:   "name",
+		Email:  "email",
+	}
+
 	tests := []struct {
 		name         string
 		transactions transactions
@@ -222,6 +228,7 @@ func TestSummarizerResume(t *testing.T) {
 				},
 			},
 			expected: Resume{
+				User:      user,
 				Balance:   "-55.00",
 				CreditAvg: "15.00",
 				DebitAvg:  "-35.00",
@@ -237,13 +244,14 @@ func TestSummarizerResume(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.expected, summarizer{}.resume(test.transactions))
+			assert.Equal(t, test.expected, summarizer{}.resume(user, test.transactions))
 		})
 	}
 }
 
 func TestResumeToHTML(t *testing.T) {
 	resume := Resume{
+		User:      User{Name: "name"},
 		Balance:   "1.12",
 		CreditAvg: "1.4",
 		DebitAvg:  "1.55",
@@ -277,8 +285,9 @@ func TestResumeToHTML(t *testing.T) {
 			resume: resume,
 			tmpl:   resumeHTMLTemplate,
 			result: "<body>    <img src=\"https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg\"> " +
-				"   <h1>Balance: 1.12</h1>    <h1>Credit Average: 1.4</h1>    <h1>Debit Average: 1.55</h1>   " +
-				" <h1>Transactions by month</h1>    <p>         <p>January: 5<p> <p>December: 5<p>    </p></body>",
+				"   <p>Hello name</p>    <h1>Balance: 1.12</h1>    <h1>Credit Average: 1.4</h1>   " +
+				" <h1>Debit Average: 1.55</h1>    <h1>Transactions by month</h1>    " +
+				"<p>         <p>January: 5</p> <p>December: 5</p>    </p></body>",
 			expectedErr: false,
 		},
 	}

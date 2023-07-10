@@ -13,12 +13,13 @@ const (
 	resumeHTMLTemplate = `
 <body>
     <img src="https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg">
+    <p>Hello {{.User.Name}}</p>
     <h1>Balance: {{.Balance}}</h1>
     <h1>Credit Average: {{.CreditAvg}}</h1>
     <h1>Debit Average: {{.DebitAvg}}</h1>
     <h1>Transactions by month</h1>
     <p>
-        {{range .MonthTransactions}} <p>{{.Month}}: {{.TotalTransactions}}<p>{{end}}
+        {{range .MonthTransactions}} <p>{{.Month}}: {{.TotalTransactions}}</p>{{end}}
     </p>
 </body>`
 )
@@ -80,7 +81,7 @@ func (s summarizer) getTotalTransactionsByMonth(txns transactions) map[time.Mont
 	return totalTransactionsByMonth
 }
 
-func (s summarizer) resume(txns transactions) Resume {
+func (s summarizer) resume(user User, txns transactions) Resume {
 	var (
 		months              []time.Month
 		monthTransactions   []MonthTransaction
@@ -103,6 +104,7 @@ func (s summarizer) resume(txns transactions) Resume {
 	}
 
 	return Resume{
+		User:              user,
 		Balance:           fmt.Sprintf("%.2f", s.getBalance(txns)),
 		CreditAvg:         fmt.Sprintf("%.2f", s.getCreditAvg(txns)),
 		DebitAvg:          fmt.Sprintf("%.2f", s.getDebitAvg(txns)),
@@ -116,6 +118,7 @@ type MonthTransaction struct {
 }
 
 type Resume struct {
+	User              User
 	Balance           string
 	CreditAvg         string
 	DebitAvg          string

@@ -52,12 +52,12 @@ func (s service) notifyResume(ctx context.Context, txns transactions) (err error
 		return
 	}
 
-	if message, err = summ.resume(txns).ToHTML(resumeHTMLTemplate); err != nil {
+	if message, err = summ.resume(user, txns).ToHTML(resumeHTMLTemplate); err != nil {
 		err = fmt.Errorf("error generating message for user id %d due to: %w", txns.userID, err)
 		return
 	}
 
-	if err = s.notifier.NotifyToUser(ctx, message, user.email); err != nil {
+	if err = s.notifier.NotifyToUser(ctx, message, user.Email); err != nil {
 		err = fmt.Errorf("error notifying transactions to user id %d due to: %w", txns.userID, err)
 		return
 	}

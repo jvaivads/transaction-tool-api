@@ -70,7 +70,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
-				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{Email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(customErr).Once()
 				rm.On(
 					"finishTransactionalOperations",
@@ -84,7 +84,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
-				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{Email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
 				nm.On("NotifyToUser", msg, "email").Return(customErr).Once()
 				rm.On(
@@ -100,7 +100,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
-				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{Email: "email"}, nil).Once()
 				nm.On("NotifyToUser", msg, "email").Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(customErr).Once()
 			},
@@ -111,7 +111,7 @@ func TestServiceResumeTransactions(t *testing.T) {
 			transactions: bankTnxs,
 			mockApplier: func(rm *repositoryMock, nm *notifier.Mock) {
 				rm.On("initTransactionalOperations").Return(tx{}, nil).Once()
-				rm.On("getUserByID", tx{}, int64(1)).Return(User{email: "email"}, nil).Once()
+				rm.On("getUserByID", tx{}, int64(1)).Return(User{Email: "email"}, nil).Once()
 				rm.On("saveBankTransactions", tx{}, bankTnxs).Return(nil).Once()
 				nm.On("NotifyToUser", msg, "email").Return(nil).Once()
 				rm.On("finishTransactionalOperations", tx{}, error(nil)).Return(nil).Once()

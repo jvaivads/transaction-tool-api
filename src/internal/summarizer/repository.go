@@ -94,9 +94,9 @@ func (r repository) saveBankTransactions(ctx context.Context, tnx tx, bankTxns t
 }
 
 type User struct {
-	userID int64
-	name   string
-	email  string
+	UserID int64
+	Name   string
+	Email  string
 }
 
 func (r repository) getUserByID(ctx context.Context, tnx tx, userID int64) (User, error) {
@@ -110,7 +110,7 @@ func (r repository) getUserByID(ctx context.Context, tnx tx, userID int64) (User
 		return User{}, err
 	}
 
-	if err = row.Scan(&user.userID, &user.name, &user.email); err != nil {
+	if err = row.Scan(&user.UserID, &user.Name, &user.Email); err != nil {
 		return User{}, fmt.Errorf("error scanning user by id %d due to: %w", userID, err)
 	}
 

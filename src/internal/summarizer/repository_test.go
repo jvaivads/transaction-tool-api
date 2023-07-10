@@ -139,9 +139,9 @@ func TestSQLRepositoryGetUserByID(t *testing.T) {
 				m.ExpectQuery(query).WithArgs(int64(1)).WillReturnRows(rows)
 			},
 			result: User{
-				userID: 1,
-				name:   "name",
-				email:  "email",
+				UserID: 1,
+				Name:   "name",
+				Email:  "email",
 			},
 		},
 	}
