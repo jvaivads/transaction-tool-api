@@ -17,4 +17,4 @@ create table transaction
     constraint user_id_fk foreign key (user_id) references user (id)
 );
 
-insert into user (id,user_name,email) values (100, "name", "jesusvaivads@gmail.com");
+insert into user (id,user_name,email) values (100, "juan perez", "xxxxxxx@gmail.com");
